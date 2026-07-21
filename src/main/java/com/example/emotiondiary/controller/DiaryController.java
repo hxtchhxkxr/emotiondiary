@@ -4,6 +4,7 @@ import com.example.emotiondiary.dto.DiaryListResponse;
 import com.example.emotiondiary.dto.DiaryRequest;
 import com.example.emotiondiary.dto.DiaryResponse;
 import com.example.emotiondiary.service.DiaryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,14 +31,14 @@ public class DiaryController {
     }
 
     @PostMapping
-    public ResponseEntity<DiaryResponse> create(@RequestBody DiaryRequest request) {
+    public ResponseEntity<DiaryResponse> create(@Valid @RequestBody DiaryRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(diaryService.create(request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DiaryResponse> update(
             @PathVariable String id,
-            @RequestBody DiaryRequest request) {
+            @Valid @RequestBody DiaryRequest request) {
         return ResponseEntity.ok(diaryService.update(id, request));
     }
 

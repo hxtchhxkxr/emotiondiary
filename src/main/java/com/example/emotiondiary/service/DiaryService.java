@@ -4,6 +4,7 @@ import com.example.emotiondiary.dto.DiaryListResponse;
 import com.example.emotiondiary.dto.DiaryRequest;
 import com.example.emotiondiary.dto.DiaryResponse;
 import com.example.emotiondiary.entity.Diary;
+import com.example.emotiondiary.exception.DiaryNotFoundException;
 import com.example.emotiondiary.repository.DiaryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -66,7 +67,7 @@ public class DiaryService {
         // orElseThrow: Optional이 비어있으면 예외를 던짐
         // → 존재하지 않는 일기를 조회하려 하면 에러 발생
         Diary diary = diaryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Diary not found: " + id));
+                .orElseThrow(() -> new DiaryNotFoundException(id));
         return DiaryResponse.from(diary);
     }
 
@@ -98,7 +99,7 @@ public class DiaryService {
     @Transactional
     public DiaryResponse update(String id, DiaryRequest request) {
         Diary diary = diaryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Diary not found: " + id));
+                .orElseThrow(() -> new DiaryNotFoundException(id));
         // 엔티티의 update 메서드를 호출하여 필드 값 변경
         // → 트랜잭션 종료 시 JPA가 변경을 감지하고 자동으로 UPDATE SQL 실행
         diary.update(request.getDate(), request.getContent(), request.getEmotionId());
@@ -114,7 +115,7 @@ public class DiaryService {
     public void delete(String id) {
         // 삭제 전에 먼저 존재 여부를 확인 → 없으면 예외 발생
         Diary diary = diaryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Diary not found: " + id));
+                .orElseThrow(() -> new DiaryNotFoundException(id));
         diaryRepository.delete(diary);
     }
 }
