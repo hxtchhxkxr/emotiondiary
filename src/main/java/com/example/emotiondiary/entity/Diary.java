@@ -34,8 +34,13 @@ public class Diary {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Builder
-    public Diary(Long date, String content, Integer emotionId) {
+    public Diary(User user, Long date, String content, Integer emotionId) {
+        this.user = user;
         this.date = date;
         this.content = content;
         this.emotionId = emotionId;
@@ -58,4 +63,6 @@ public class Diary {
         this.content = content;
         this.emotionId = emotionId;
     }
+
+
 }
