@@ -16,3 +16,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  member:
+    secret: ${JWT_MEMBER_SECRET}
+    access-exp-min: 30
+    refresh-exp-min: 1440

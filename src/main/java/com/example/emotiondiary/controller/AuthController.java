@@ -1,6 +1,8 @@
 package com.example.emotiondiary.controller;
 
+import com.example.emotiondiary.dto.auth.LoginRequest;
 import com.example.emotiondiary.dto.auth.SignUpRequest;
+import com.example.emotiondiary.dto.auth.TokenResponse;
 import com.example.emotiondiary.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,5 +24,10 @@ public class AuthController {
     public ResponseEntity<Void> signup(@Valid @RequestBody SignUpRequest request) {
         authService.signup(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 }
