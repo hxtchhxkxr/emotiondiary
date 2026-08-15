@@ -6,6 +6,7 @@ import com.example.emotiondiary.exception.BusinessException;
 import com.example.emotiondiary.exception.ErrorCode;
 import com.example.emotiondiary.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public Long signup(SignUpRequest request) {
@@ -24,7 +26,7 @@ public class AuthService {
         }
         User user = User.create(
                 request.getEmail(),
-                request.getPassword(),     // 뒤에서 BCrypt 로 인코딩
+                passwordEncoder.encode(request.getPassword()),
                 request.getNickname());
         return userRepository.save(user).getId();
     }
