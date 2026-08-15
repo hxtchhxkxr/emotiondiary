@@ -3,6 +3,7 @@ package com.example.emotiondiary.exception;
 import com.example.emotiondiary.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -43,6 +44,15 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.builder()
                         .code(ErrorCode.INTERNAL_ERROR.getCode())
                         .message(ErrorCode.INTERNAL_ERROR.getDefaultMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
+        return ResponseEntity.status(ErrorCode.FORBIDDEN.getStatus())
+                .body(ErrorResponse.builder()
+                        .code(ErrorCode.FORBIDDEN.getCode())
+                        .message(ErrorCode.FORBIDDEN.getDefaultMessage())
                         .build());
     }
 }
