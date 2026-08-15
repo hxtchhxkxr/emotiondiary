@@ -1,7 +1,9 @@
 package com.example.emotiondiary.security.jwt;
 
+import com.example.emotiondiary.exception.ErrorCode;
 import com.example.emotiondiary.security.dto.CustomUserDetails;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -45,8 +47,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
+            } catch (ExpiredJwtException e) {
+                request.setAttribute(JwtAuthenticationEntryPoint.ATTR_ERROR_CODE, ErrorCode.EXPIRED_TOKEN);
+                SecurityContextHolder.clearContext();
             } catch (JwtException e) {
-                log.debug("Invalid JWT: {}", e.getMessage());
+                request.setAttribute(JwtAuthenticationEntryPoint.ATTR_ERROR_CODE, ErrorCode.INVALID_TOKEN);
                 SecurityContextHolder.clearContext();
             }
         }

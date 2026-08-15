@@ -1,5 +1,7 @@
 package com.example.emotiondiary.config;
 
+import com.example.emotiondiary.security.jwt.JwtAccessDeniedHandler;
+import com.example.emotiondiary.security.jwt.JwtAuthenticationEntryPoint;
 import com.example.emotiondiary.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +28,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final JwtAccessDeniedHandler accessDeniedHandler;
 
     /**
      * 비밀번호 암호화에 사용할 인코더 빈 등록
@@ -78,7 +82,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요 (JWT 토큰 필수)
                 )
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler));
 
 
         return http.build();
