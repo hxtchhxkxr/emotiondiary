@@ -1,5 +1,7 @@
 package com.example.emotiondiary.config;
 
+import com.example.emotiondiary.security.jwt.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,6 +9,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -17,7 +20,10 @@ import java.util.List;
  * Spring Security 설정 클래스
  */
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * 비밀번호 암호화에 사용할 인코더 빈 등록
@@ -68,7 +74,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"     // Swagger API 문서 JSON
                         ).permitAll()                 // 위 경로는 인증 없이 허용
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요 (JWT 토큰 필수)
-                );
+                )
+
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
