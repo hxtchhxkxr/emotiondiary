@@ -2,7 +2,6 @@ package com.example.emotiondiary.exception;
 
 import com.example.emotiondiary.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,11 +11,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DiaryNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleDiaryNotFound(DiaryNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusiness(BusinessException e) {
+        ErrorCode ec = e.getErrorCode();
+        log.warn("BusinessException: {} {}", ec.getCode(), e.getMessage());
+        return ResponseEntity.status(ec.getStatus())
                 .body(ErrorResponse.builder()
-                        .code("DIARY_NOT_FOUND")
+                        .code(ec.getCode())
                         .message(e.getMessage())
                         .build());
     }
@@ -26,11 +27,11 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(fe -> fe.getField() + " : " + fe.getDefaultMessage())
-                .orElse("Validation failed");
+                .orElse(ErrorCode.VALIDATION_ERROR.getDefaultMessage());
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.getStatus())
                 .body(ErrorResponse.builder()
-                        .code("VALIDATION_ERROR")
+                        .code(ErrorCode.VALIDATION_ERROR.getCode())
                         .message(message)
                         .build());
     }
@@ -38,10 +39,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         log.error("Unhandled exception", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(ErrorCode.INTERNAL_ERROR.getStatus())
                 .body(ErrorResponse.builder()
-                        .code("INTERNAL_ERROR")
-                        .message("Internal server error")
+                        .code(ErrorCode.INTERNAL_ERROR.getCode())
+                        .message(ErrorCode.INTERNAL_ERROR.getDefaultMessage())
                         .build());
     }
 }
