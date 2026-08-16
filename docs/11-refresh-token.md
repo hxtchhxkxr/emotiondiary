@@ -770,13 +770,72 @@ RefreshTokenRepository
 
 ## 복습 질문
 
-1. Access Token과 Refresh Token을 나누는 이유는 무엇일까?
-2. JWT인데도 Refresh Token을 DB에 저장하는 이유는 무엇일까?
-3. `userId`에 `unique = true`를 설정하면 어떤 정책이 만들어질까?
-4. `rotate()`를 호출한 후 별도의 `save()`가 없어도 UPDATE되는 이유는 무엇일까?
-5. 재발급 요청 토큰과 DB 토큰이 다르면 왜 DB 토큰까지 삭제할까?
-6. Refresh Token Rotation은 무엇일까?
-7. 로그아웃 후 Access Token이 바로 무효화되지 않는 이유는 무엇일까?
-8. `refreshExpMin`에 `plusSeconds()`를 사용하면 어떤 문제가 생길까?
-9. 현재 `/api/auth/**`를 모두 `permitAll()`로 설정했을 때 로그아웃 API에는 어떤 문제가 생길 수 있을까?
-10. Access Token과 Refresh Token의 종류를 구분해서 검증해야 하는 이유는 무엇일까?
+<details>
+<summary>1. Access Token과 Refresh Token을 나누는 이유는 무엇일까?</summary>
+
+수명이 짧은 Access Token으로 API를 사용해 탈취 피해를 줄이면서, 수명이 긴 Refresh Token으로 로그인 없이 Access Token을 다시 발급받기 위해서다.
+
+</details>
+
+<details>
+<summary>2. JWT인데도 Refresh Token을 DB에 저장하는 이유는 무엇일까?</summary>
+
+서버가 현재 유효한 Refresh Token을 직접 관리하기 위해서다. DB 값과 비교하면 로그아웃한 토큰이나 이미 교체된 토큰의 재사용을 막을 수 있다.
+
+</details>
+
+<details>
+<summary>3. <code>userId</code>에 <code>unique = true</code>를 설정하면 어떤 정책이 만들어질까?</summary>
+
+한 사용자당 Refresh Token 행을 하나만 저장하는 정책이 된다. 새로 로그인하거나 재발급하면 기존 행의 토큰을 교체하므로 이전 기기의 Refresh Token은 사용할 수 없게 된다.
+
+</details>
+
+<details>
+<summary>4. <code>rotate()</code>를 호출한 후 별도의 <code>save()</code>가 없어도 UPDATE되는 이유는 무엇일까?</summary>
+
+`@Transactional` 안에서 조회한 엔티티는 JPA가 관리한다. `rotate()`로 필드가 바뀌면 JPA의 변경 감지가 이를 발견해 트랜잭션 커밋 시 자동으로 `UPDATE`한다.
+
+</details>
+
+<details>
+<summary>5. 재발급 요청 토큰과 DB 토큰이 다르면 왜 DB 토큰까지 삭제할까?</summary>
+
+이미 교체된 토큰이 다시 사용된 것은 탈취나 재사용 공격일 수 있기 때문이다. 서버가 저장한 토큰까지 삭제해 모든 재발급을 막고 사용자가 다시 로그인하도록 만든다.
+
+</details>
+
+<details>
+<summary>6. Refresh Token Rotation은 무엇일까?</summary>
+
+재발급에 성공할 때 Access Token뿐 아니라 Refresh Token도 새로 만들고 DB의 기존 Refresh Token을 교체하는 방식이다. 한 번 사용한 이전 Refresh Token은 다시 사용할 수 없다.
+
+</details>
+
+<details>
+<summary>7. 로그아웃 후 Access Token이 바로 무효화되지 않는 이유는 무엇일까?</summary>
+
+로그아웃은 DB에 저장된 Refresh Token만 삭제하기 때문이다. Access Token은 서버에 저장하지 않는 JWT이므로 블랙리스트 같은 추가 장치가 없다면 원래 만료 시각까지 검증에 성공할 수 있다.
+
+</details>
+
+<details>
+<summary>8. <code>refreshExpMin</code>에 <code>plusSeconds()</code>를 사용하면 어떤 문제가 생길까?</summary>
+
+분 단위 값을 초로 계산해 DB의 `expiresAt`이 실제 JWT 만료 시각보다 훨씬 이르게 기록된다. `refreshExpMin`을 그대로 사용하려면 `plusMinutes()`를 호출해야 한다.
+
+</details>
+
+<details>
+<summary>9. 현재 <code>/api/auth/**</code>를 모두 <code>permitAll()</code>로 설정했을 때 로그아웃 API에는 어떤 문제가 생길 수 있을까?</summary>
+
+토큰이 없는 요청도 로그아웃 Controller에 도착할 수 있다. 이때 `@AuthenticationPrincipal` 값이 `null`이므로 `principal.getId()`에서 오류가 발생할 수 있다.
+
+</details>
+
+<details>
+<summary>10. Access Token과 Refresh Token의 종류를 구분해서 검증해야 하는 이유는 무엇일까?</summary>
+
+Access Token은 일반 API 인증에, Refresh Token은 재발급에만 사용해야 하기 때문이다. 타입을 확인하지 않으면 Access Token을 재발급 API에 넣거나 Refresh Token을 인증 필터에 넣는 잘못된 사용을 완전히 막기 어렵다.
+
+</details>

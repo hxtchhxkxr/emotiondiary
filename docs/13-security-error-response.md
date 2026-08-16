@@ -883,13 +883,72 @@ SecurityConfig
 
 ## 복습 질문
 
-1. Security 필터에서 발생한 오류가 `GlobalExceptionHandler`에 잡히지 않을 수 있는 이유는 무엇일까?
-2. `AuthenticationEntryPoint`와 `AccessDeniedHandler`는 각각 어떤 실패를 처리할까?
-3. 토큰 누락과 권한 부족은 각각 어떤 HTTP 상태를 사용할까?
-4. `ExpiredJwtException`을 `JwtException`보다 먼저 잡아야 하는 이유는 무엇일까?
-5. request attribute는 무엇이며 이 코드에서는 어떤 값을 전달할까?
-6. 토큰이 없을 때 `ATTR_ERROR_CODE`가 `null`인 이유는 무엇일까?
-7. `ObjectMapper`는 어떤 역할을 할까?
-8. EntryPoint가 `ResponseEntity` 대신 `HttpServletResponse`에 직접 쓰는 이유는 무엇일까?
-9. 잘못된 토큰으로 `permitAll()` API를 요청하면 EntryPoint가 실행되지 않을 수 있는 이유는 무엇일까?
-10. JWT의 `sub`가 숫자가 아닐 때 현재 필터에서 별도 처리가 필요한 이유는 무엇일까?
+<details>
+<summary>1. Security 필터에서 발생한 오류가 <code>GlobalExceptionHandler</code>에 잡히지 않을 수 있는 이유는 무엇일까?</summary>
+
+Security 필터는 `DispatcherServlet`과 Controller보다 먼저 실행된다. Controller 영역에 들어가기 전에 요청이 차단되면 MVC의 `@RestControllerAdvice`가 예외를 처리할 기회가 없을 수 있다.
+
+</details>
+
+<details>
+<summary>2. <code>AuthenticationEntryPoint</code>와 <code>AccessDeniedHandler</code>는 각각 어떤 실패를 처리할까?</summary>
+
+`AuthenticationEntryPoint`는 사용자를 확인하지 못한 인증 실패를 처리한다. `AccessDeniedHandler`는 사용자는 인증됐지만 필요한 권한이 없는 인가 실패를 처리한다.
+
+</details>
+
+<details>
+<summary>3. 토큰 누락과 권한 부족은 각각 어떤 HTTP 상태를 사용할까?</summary>
+
+토큰 누락은 인증할 수 없으므로 `401 Unauthorized`, 권한 부족은 인증됐지만 허용되지 않으므로 `403 Forbidden`을 사용한다.
+
+</details>
+
+<details>
+<summary>4. <code>ExpiredJwtException</code>을 <code>JwtException</code>보다 먼저 잡아야 하는 이유는 무엇일까?</summary>
+
+`ExpiredJwtException`이 `JwtException`의 하위 타입이기 때문이다. 상위 타입을 먼저 잡으면 만료 예외도 모두 일반 JWT 오류로 처리되어 `EXPIRED_TOKEN`으로 구분할 수 없다.
+
+</details>
+
+<details>
+<summary>5. request attribute는 무엇이며 이 코드에서는 어떤 값을 전달할까?</summary>
+
+하나의 HTTP 요청이 처리되는 동안 서버 내부 컴포넌트끼리 값을 전달하는 공간이다. JWT 필터가 `EXPIRED_TOKEN` 또는 `INVALID_TOKEN`을 저장하고 EntryPoint가 이를 읽는다.
+
+</details>
+
+<details>
+<summary>6. 토큰이 없을 때 <code>ATTR_ERROR_CODE</code>가 <code>null</code>인 이유는 무엇일까?</summary>
+
+JWT 필터가 검사할 토큰 자체가 없으므로 만료나 위조 오류 코드를 저장하지 않기 때문이다. EntryPoint는 이 경우 기본값인 `UNAUTHORIZED`를 사용한다.
+
+</details>
+
+<details>
+<summary>7. <code>ObjectMapper</code>는 어떤 역할을 할까?</summary>
+
+`ErrorResponse` 같은 Java 객체를 JSON으로 변환한다. 변환한 JSON을 `HttpServletResponse`의 출력 스트림에 작성해 클라이언트에 보낸다.
+
+</details>
+
+<details>
+<summary>8. EntryPoint가 <code>ResponseEntity</code> 대신 <code>HttpServletResponse</code>에 직접 쓰는 이유는 무엇일까?</summary>
+
+인증 실패가 Controller 실행 전에 발생하기 때문이다. 반환값을 처리해줄 Controller가 없으므로 상태 코드, Content-Type, JSON 본문을 응답 객체에 직접 작성한다.
+
+</details>
+
+<details>
+<summary>9. 잘못된 토큰으로 <code>permitAll()</code> API를 요청하면 EntryPoint가 실행되지 않을 수 있는 이유는 무엇일까?</summary>
+
+`permitAll()` 경로는 인증 정보가 없어도 접근할 수 있다. 필터가 토큰을 무효로 판단해 인증 정보를 비워도 최종 인가 검사가 실패하지 않으므로 EntryPoint를 호출할 이유가 없다.
+
+</details>
+
+<details>
+<summary>10. JWT의 <code>sub</code>가 숫자가 아닐 때 현재 필터에서 별도 처리가 필요한 이유는 무엇일까?</summary>
+
+`Long.valueOf()`가 발생시키는 `NumberFormatException`은 `JwtException`이 아니기 때문이다. 현재 두 catch 블록에 잡히지 않으므로 원하는 `INVALID_TOKEN` 응답으로 바꾸려면 별도 처리가 필요하다.
+
+</details>

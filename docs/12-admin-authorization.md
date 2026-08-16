@@ -675,13 +675,72 @@ GlobalExceptionHandler
 
 ## 복습 질문
 
-1. 인증과 인가는 어떻게 다를까?
-2. 토큰이 없는 경우와 USER 토큰으로 관리자 API를 요청한 경우의 상태 코드는 각각 무엇일까?
-3. `@EnableMethodSecurity`가 필요한 이유는 무엇일까?
-4. `@PreAuthorize`는 메서드 실행 전과 후 중 언제 검사할까?
-5. `hasRole('ADMIN')`이 실제로 확인하는 권한 문자열은 무엇일까?
-6. `hasRole()`과 `hasAuthority()`는 어떻게 다르게 작성할까?
-7. `@PreAuthorize`를 클래스에 붙이면 어느 범위에 적용될까?
-8. `User` 엔티티를 그대로 응답하지 않고 `UserSummary`를 사용하는 이유는 무엇일까?
-9. DB의 역할을 바꾼 뒤 다시 로그인해야 하는 이유는 무엇일까?
-10. 역할 기반 인가와 일기 소유권 검사는 각각 어디에서 처리하는 것이 좋을까?
+<details>
+<summary>1. 인증과 인가는 어떻게 다를까?</summary>
+
+인증은 요청한 사용자가 누구인지 확인하는 과정이고, 인가는 인증된 사용자가 해당 기능을 실행할 권한이 있는지 확인하는 과정이다.
+
+</details>
+
+<details>
+<summary>2. 토큰이 없는 경우와 USER 토큰으로 관리자 API를 요청한 경우의 상태 코드는 각각 무엇일까?</summary>
+
+토큰이 없어 사용자를 확인하지 못하면 `401 Unauthorized`다. USER 토큰으로 인증은 됐지만 ADMIN 권한이 없으면 `403 Forbidden`이다.
+
+</details>
+
+<details>
+<summary>3. <code>@EnableMethodSecurity</code>가 필요한 이유는 무엇일까?</summary>
+
+`@PreAuthorize` 같은 메서드 보안 어노테이션을 활성화하기 위해서다. 이 설정이 없으면 메서드에 권한 조건을 작성해도 검사 기능이 동작하지 않는다.
+
+</details>
+
+<details>
+<summary>4. <code>@PreAuthorize</code>는 메서드 실행 전과 후 중 언제 검사할까?</summary>
+
+메서드가 실행되기 전에 검사한다. 조건을 만족하지 못하면 메서드 본문을 실행하지 않고 접근을 거부한다.
+
+</details>
+
+<details>
+<summary>5. <code>hasRole('ADMIN')</code>이 실제로 확인하는 권한 문자열은 무엇일까?</summary>
+
+`ROLE_ADMIN`을 확인한다. `hasRole()`은 전달받은 역할 이름 앞에 `ROLE_` 접두사를 자동으로 붙인다.
+
+</details>
+
+<details>
+<summary>6. <code>hasRole()</code>과 <code>hasAuthority()</code>는 어떻게 다르게 작성할까?</summary>
+
+`hasRole('ADMIN')`처럼 역할 이름만 쓰면 `ROLE_`이 자동으로 붙는다. `hasAuthority('ROLE_ADMIN')`처럼 사용할 때는 전체 권한 문자열을 직접 작성한다.
+
+</details>
+
+<details>
+<summary>7. <code>@PreAuthorize</code>를 클래스에 붙이면 어느 범위에 적용될까?</summary>
+
+그 클래스 안의 모든 대상 메서드에 적용된다. 따라서 `AdminUserController`에 앞으로 API 메서드를 추가해도 같은 ADMIN 권한 검사를 받는다.
+
+</details>
+
+<details>
+<summary>8. <code>User</code> 엔티티를 그대로 응답하지 않고 <code>UserSummary</code>를 사용하는 이유는 무엇일까?</summary>
+
+API 목적에 필요한 `id`, `email`, `nickname`, `role`만 공개하고 비밀번호 같은 민감 정보와 내부 엔티티 구조를 숨기기 위해서다.
+
+</details>
+
+<details>
+<summary>9. DB의 역할을 바꾼 뒤 다시 로그인해야 하는 이유는 무엇일까?</summary>
+
+권한 정보가 Access Token의 `role` 클레임에 들어 있기 때문이다. DB를 수정해도 이미 발급된 JWT 내용은 바뀌지 않으므로 새 역할이 담긴 토큰을 다시 발급받아야 한다.
+
+</details>
+
+<details>
+<summary>10. 역할 기반 인가와 일기 소유권 검사는 각각 어디에서 처리하는 것이 좋을까?</summary>
+
+ADMIN 같은 역할 검사는 URL 규칙이나 `@PreAuthorize`에서 처리할 수 있다. 특정 일기가 현재 사용자의 것인지 확인하는 소유권 검사는 Service와 Repository의 사용자 ID 조회 조건으로 보장하는 것이 좋다.
+
+</details>

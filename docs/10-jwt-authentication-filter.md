@@ -735,13 +735,72 @@ DiaryService와 Repository
 
 ## 복습 질문
 
-1. 로그인 성공 후 JWT를 발급하는 것만으로 인증 처리가 끝나지 않는 이유는 무엇일까?
-2. `OncePerRequestFilter`는 어떤 역할을 할까?
-3. `resolveToken()`은 요청에서 무엇을 추출할까?
-4. `SecurityContext`에는 어떤 객체가 저장될까?
-5. `@AuthenticationPrincipal`은 사용자 정보를 어디에서 가져올까?
-6. `USER` 역할 앞에 `ROLE_`을 붙이는 이유는 무엇일까?
-7. 필터 마지막에 `chain.doFilter()`가 필요한 이유는 무엇일까?
-8. 사용자 ID를 Controller에서만 확인하지 않고 Repository 조건에도 넣어야 하는 이유는 무엇일까?
-9. 현재 JWT 필터가 요청마다 DB를 조회하지 않을 때 생기는 장단점은 무엇일까?
-10. Access Token과 Refresh Token을 구분해서 검증해야 하는 이유는 무엇일까?
+<details>
+<summary>1. 로그인 성공 후 JWT를 발급하는 것만으로 인증 처리가 끝나지 않는 이유는 무엇일까?</summary>
+
+서버는 이후 요청에 담긴 JWT를 읽고 검증해야 요청자가 누구인지 알 수 있다. 검증한 사용자 정보를 `SecurityContext`에 저장해야 Spring Security가 인증된 요청으로 처리한다.
+
+</details>
+
+<details>
+<summary>2. <code>OncePerRequestFilter</code>는 어떤 역할을 할까?</summary>
+
+하나의 HTTP 요청마다 필터 로직이 한 번 실행되도록 보장한다. `JwtAuthenticationFilter`는 이를 상속해 매 요청의 JWT를 검사한다.
+
+</details>
+
+<details>
+<summary>3. <code>resolveToken()</code>은 요청에서 무엇을 추출할까?</summary>
+
+`Authorization` 헤더의 `Bearer ` 뒤에 있는 실제 JWT 문자열을 추출한다. 헤더가 없거나 형식이 올바르지 않으면 `null`을 반환한다.
+
+</details>
+
+<details>
+<summary>4. <code>SecurityContext</code>에는 어떤 객체가 저장될까?</summary>
+
+현재 사용자의 인증 상태를 나타내는 `Authentication` 객체가 저장된다. 이 객체 안에는 `CustomUserDetails`와 사용자의 권한 목록이 들어 있다.
+
+</details>
+
+<details>
+<summary>5. <code>@AuthenticationPrincipal</code>은 사용자 정보를 어디에서 가져올까?</summary>
+
+`SecurityContext`에 저장된 `Authentication` 객체의 `principal`을 가져온다. 현재 프로젝트에서는 그 값이 `CustomUserDetails`다.
+
+</details>
+
+<details>
+<summary>6. <code>USER</code> 역할 앞에 <code>ROLE_</code>을 붙이는 이유는 무엇일까?</summary>
+
+Spring Security의 `hasRole()`이 기본적으로 `ROLE_` 접두사가 붙은 권한을 검사하기 때문이다. 따라서 `USER`는 `ROLE_USER`, `ADMIN`은 `ROLE_ADMIN`으로 등록한다.
+
+</details>
+
+<details>
+<summary>7. 필터 마지막에 <code>chain.doFilter()</code>가 필요한 이유는 무엇일까?</summary>
+
+현재 필터의 처리가 끝난 뒤 요청을 다음 필터로 전달하기 위해서다. 호출하지 않으면 정상 요청도 다음 보안 필터와 Controller까지 진행하지 못한다.
+
+</details>
+
+<details>
+<summary>8. 사용자 ID를 Controller에서만 확인하지 않고 Repository 조건에도 넣어야 하는 이유는 무엇일까?</summary>
+
+다른 사용자의 일기 ID를 알아내 요청하더라도 조회 조건에서 소유자를 함께 검사하기 위해서다. `일기 ID AND 현재 사용자 ID` 조건을 사용해야 본인 소유 데이터만 조회·수정·삭제할 수 있다.
+
+</details>
+
+<details>
+<summary>9. 현재 JWT 필터가 요청마다 DB를 조회하지 않을 때 생기는 장단점은 무엇일까?</summary>
+
+장점은 DB 조회가 없어 인증 처리가 빠르고 서버 부담이 적다는 것이다. 단점은 DB에서 권한을 바꾸거나 계정을 정지해도 기존 Access Token이 만료될 때까지 이전 정보가 사용될 수 있다는 것이다.
+
+</details>
+
+<details>
+<summary>10. Access Token과 Refresh Token을 구분해서 검증해야 하는 이유는 무엇일까?</summary>
+
+두 토큰의 목적이 다르기 때문이다. Access Token만 일반 API 인증에 사용하고 Refresh Token은 재발급에만 사용해야 하며, 구분하지 않으면 Refresh Token이 보호된 API 인증에 잘못 사용될 수 있다.
+
+</details>
