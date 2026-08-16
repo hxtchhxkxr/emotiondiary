@@ -1,4 +1,4 @@
-package com.example.emotiondiary;
+package com.example.emotiondiary.sample;
 
 import org.junit.jupiter.api.*;
 

@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:emotiondiary_test;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop   # 테스트 시작 시 스키마 생성, 종료 시 폐기
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  member:
+    secret: test-secret-test-secret-test-secret-test
+    access-exp-min: 30
+    refresh-exp-min: 1440
