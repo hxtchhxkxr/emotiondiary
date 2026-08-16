@@ -8,6 +8,9 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+    datasource:
+      hikari:
+        maximum-pool-size: 3
 
   jpa:
     hibernate:
@@ -22,3 +25,27 @@ jwt:
     secret: ${JWT_MEMBER_SECRET}
     access-exp-min: 30
     refresh-exp-min: 1440
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: emotiondiary       # 모든 지표에 기본 라벨을 붙임
+    distribution:
+      # http.server.requests 에 대해 히스토그램 버킷 방출 (p95/p99 계산용)
+      # - 기본값은 false 라 histogram_quantile() 이 Empty result 가 됨
+      percentiles-histogram:
+        http.server.requests: true
+      # (선택) Spring Boot 가 서버측에서 미리 계산한 percentile 도 같이 노출
+      # → Grafana 에서 histogram_quantile 없이도 직접 쿼리 가능
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      # 버킷 경계(초) — 웹 요청 응답시간 분포에 맞춘 설정
+      sla:
+        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms, 1s, 2s

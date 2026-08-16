@@ -41,6 +41,10 @@ dependencies {
     runtimeOnly    'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
     testRuntimeOnly 'com.h2database:h2'
+
+    // 7단원: Actuator + Micrometer Prometheus
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
