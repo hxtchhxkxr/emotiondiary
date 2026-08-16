@@ -1,0 +1,66 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    container_name: emotiondiary-elasticsearch
+    environment:
+      - discovery.type=single-node                    # 단일 노드 개발 모드
+      - xpack.security.enabled=false                  # 학습 편의 — 운영 금지
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m                # 메모리 512MB (로컬 친화)
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    volumes:
+      - emotiondiary-es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - emotiondiary-net
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.14.3
+    container_name: emotiondiary-logstash
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"      # TCP input (Spring Boot Logback → 여기로)
+      - "9600:9600"      # Logstash 모니터링 API
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - emotiondiary-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.3
+    container_name: emotiondiary-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=kibana
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - emotiondiary-net
+
+volumes:
+  emotiondiary-es-data:
+    name: emotiondiary-es-data
+
+networks:
+  emotiondiary-net:
+    name: emotiondiary-net
+    external: true   # 6.3 의 docker-compose.db.yml 이 먼저 만들어 둔 네트워크

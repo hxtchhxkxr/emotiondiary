@@ -1,0 +1,21 @@
+services:
+  k6:
+    image: grafana/k6:latest
+    container_name: emotiondiary-k6
+    volumes:
+      - ./k6/scripts:/scripts:ro         # 시나리오 스크립트 (읽기 전용)
+      - ./k6/results:/results            # 실행 결과 저장 (summary.json 등)
+    # 호스트에서 뜬 Spring Boot(bootRun) 를 부르기 위한 브리지 이름
+    # Linux 에도 동일하게 host-gateway 로 해석되도록 extra_hosts 주입
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # 기본 entrypoint 는 "k6" 바이너리라 up 직후 종료됨.
+    # 컨테이너를 살려두고 docker compose exec 으로 여러 시나리오를 반복 실행.
+    entrypoint: ["sleep", "infinity"]
+    networks:
+      - emotiondiary-net
+
+networks:
+  emotiondiary-net:
+    name: emotiondiary-net
+    external: true   # docker-compose.db.yml 이 먼저 만들어 둔 네트워크를 참조

@@ -1,0 +1,39 @@
+services:
+  emotiondiary-db:
+    image: mariadb:11.4
+    container_name: emotiondiary-db
+    restart: unless-stopped
+    ports:
+      - "3308:3306" # 로컬 MariaDB(3306) 와 공존시키기 위해 3308 노출
+    environment:
+      MARIADB_DATABASE: springstudy
+      MARIADB_USER: testuser
+      MARIADB_PASSWORD: test1234
+      MARIADB_ROOT_PASSWORD: root1234
+      TZ: Asia/Seoul
+    volumes:
+      - emotiondiary-db-data:/var/lib/mysql
+      - ./mariadb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - emotiondiary-net
+
+volumes:
+  emotiondiary-db-data:
+    name: emotiondiary-db-data
+
+networks:
+  emotiondiary-net:
+    name: emotiondiary-net
+    driver: bridge

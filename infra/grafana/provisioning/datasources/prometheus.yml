@@ -1,0 +1,9 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090 # 같은 docker 네트워크 안이라 서비스명으로 접근
+    isDefault: true
+    editable: true

@@ -1,0 +1,49 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    container_name: emotiondiary-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - emotiondiary-prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-remote-write-receiver" # k6 → Prometheus push 허용
+      - "--web.enable-lifecycle" # /-/reload 로 설정 재적용
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - emotiondiary-net
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: emotiondiary-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - emotiondiary-grafana-data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - emotiondiary-net
+
+volumes:
+  emotiondiary-prometheus-data:
+    name: emotiondiary-prometheus-data
+  emotiondiary-grafana-data:
+    name: emotiondiary-grafana-data
+
+networks:
+  emotiondiary-net:
+    name: emotiondiary-net
+    external: true # 6.3 의 docker-compose.db.yml 이 먼저 만들어 둔 네트워크
