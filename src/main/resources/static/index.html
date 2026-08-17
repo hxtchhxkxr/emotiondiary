@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emotion Diary Demo</title>
+
+  <link rel="stylesheet" href="/css/app.min.css">
+
+  <!-- LCP 이미지를 HTML 파서가 빨리 발견하도록 명시 (Chrome) -->
+  <link rel="preload" as="image"
+        href="/images/test.webp"
+        type="image/webp"
+        fetchpriority="high">
+</head>
+<body>
+<header>
+  <h1>Emotion Diary</h1>
+  <p id="status">로그인 중...</p>
+</header>
+
+<main>
+  <section id="hero">
+    <picture>
+      <source srcset="/images/test.webp" type="image/webp">
+      <img src="/images/test.png"
+           alt="감정 다이어리 배너"
+           width="300" height="483"
+           class="hero-img"
+           loading="eager"
+           fetchpriority="high">
+    </picture>
+  </section>
+
+  <section id="diary-list">
+    <h2>최근 일기</h2>
+    <ul id="list">
+      <li>
+        <img src="/images/thumb.webp" width="80" height="80" loading="lazy" alt="">
+        <strong>제목</strong>
+      </li>
+    </ul>
+  </section>
+</main>
+
+<!-- Before: head 가 아닌 body 끝이지만 defer/async 없음 -->
+<script src="/js/vendor.js" defer></script>
+<script src="/js/app.js" defer></script>
+</body>
+</html>

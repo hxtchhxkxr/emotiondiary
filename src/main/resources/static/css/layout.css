@@ -1,0 +1,11 @@
+header { padding: 24px; background: #1565C0; color: white; }
+main { max-width: 960px; margin: 0 auto; padding: 24px; }
+#hero { margin-bottom: 24px; }
+.hero-img {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 8px;
+}

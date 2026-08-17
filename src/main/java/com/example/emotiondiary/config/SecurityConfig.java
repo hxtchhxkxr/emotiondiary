@@ -78,7 +78,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",     // Swagger UI 페이지
                                 "/swagger-ui.html",   // Swagger UI 진입점
                                 "/v3/api-docs/**",    // Swagger API 문서 JSON
-                                "/actuator/**"        // ← 추가: Prometheus scrape, health 등
+                                "/actuator/**",       // ← 추가: Prometheus scrape, health 등
+                                // ▼ 9단원: 정적 리소스 허용
+                                "/", "/index.html",
+                                "/css/**", "/js/**", "/images/**",
+                                "/favicon.ico"
                         ).permitAll()                 // 위 경로는 인증 없이 허용
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요 (JWT 토큰 필수)
                 )

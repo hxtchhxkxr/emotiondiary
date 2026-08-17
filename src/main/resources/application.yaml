@@ -1,16 +1,17 @@
 spring:
   application:
     name: emotiondiary
+
   profiles:
     active: local
+
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
-    datasource:
-      hikari:
-        maximum-pool-size: 3
+    hikari:
+      maximum-pool-size: 3
 
   jpa:
     hibernate:
@@ -19,6 +20,28 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  # 정적 리소스 캐시 설정
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 30d
+          cache-public: true
+
+      # 콘텐츠 기반 리소스 버전 관리
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
+
+# HTML, CSS, JS 등의 응답 압축
+server:
+  compression:
+    enabled: true
+    mime-types: text/html,text/css,text/javascript,application/javascript,application/json,image/svg+xml
+    min-response-size: 1KB
 
 jwt:
   member:
@@ -30,22 +53,25 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, prometheus
+        include: health,info,metrics,prometheus
+
   endpoint:
     health:
       show-details: when-authorized
+
   metrics:
     tags:
-      application: emotiondiary       # 모든 지표에 기본 라벨을 붙임
+      application: emotiondiary
+
     distribution:
-      # http.server.requests 에 대해 히스토그램 버킷 방출 (p95/p99 계산용)
-      # - 기본값은 false 라 histogram_quantile() 이 Empty result 가 됨
+      # http.server.requests의 히스토그램 버킷 생성
       percentiles-histogram:
         http.server.requests: true
-      # (선택) Spring Boot 가 서버측에서 미리 계산한 percentile 도 같이 노출
-      # → Grafana 에서 histogram_quantile 없이도 직접 쿼리 가능
+
+      # 서버에서 미리 계산할 백분위
       percentiles:
-        http.server.requests: 0.5, 0.95, 0.99
-      # 버킷 경계(초) — 웹 요청 응답시간 분포에 맞춘 설정
+        http.server.requests: 0.5,0.95,0.99
+
+      # 응답시간 버킷 경계
       sla:
-        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms, 1s, 2s
+        http.server.requests: 10ms,50ms,100ms,200ms,500ms,1s,2s

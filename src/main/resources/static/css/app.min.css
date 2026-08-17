@@ -1,0 +1,14 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; line-height: 1.6; }header { padding: 24px; background: #1565C0; color: white; }
+main { max-width: 960px; margin: 0 auto; padding: 24px; }
+#hero { margin-bottom: 24px; }
+.hero-img {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 8px;
+}#diary-list ul { list-style: none; display: grid; gap: 12px; }
+#diary-list li { padding: 16px; border: 1px solid #e0e0e0; border-radius: 8px; }h1 { font-size: 28px; }
+h2 { font-size: 20px; margin-bottom: 12px; color: #1565C0; }
