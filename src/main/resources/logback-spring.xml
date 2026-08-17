@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 사람이 읽는 콘솔 출력 — 개발 중엔 필수 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d{HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-NONE}] %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logstash TCP appender — 컨테이너의 Logstash 로 JSON 라인 전송 -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <!-- 호스트에서 실행 중인 Spring Boot → localhost:5044 로 publish 된 Logstash 컨테이너 -->
+        <destination>localhost:5044</destination>
+
+        <!-- 연결이 끊겨도 애플리케이션은 블로킹되지 않도록 비동기 큐 사용 -->
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <reconnectionDelay>5 seconds</reconnectionDelay>
+
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- MDC 의 traceId 를 JSON 최상위 필드로 승격 -->
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+
+            <!-- 모든 로그에 공통으로 달리는 태그 — Kibana 에서 app/env 별 필터링에 사용 -->
+            <customFields>{"application":"emotiondiary","env":"local"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- 루트 레벨 INFO, 두 appender 로 동시 출력 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+
+    <!-- 특정 패키지만 DEBUG 로 풀고 싶을 때 예시 -->
+    <logger name="com.example.emotiondiary" level="DEBUG"/>
+
+</configuration>

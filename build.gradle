@@ -45,6 +45,10 @@ dependencies {
     // 7단원: Actuator + Micrometer Prometheus
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // 8단원: Logback JSON + Logstash TCP appender
+    // ※ Spring Boot 4.x 는 Logback 1.5.x 를 쓰므로 encoder 도 8.0+ 필요
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
 }
 
 tasks.named('test') {
