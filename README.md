@@ -51,3 +51,5 @@ Spring Boot 기반 감정 일기 프로젝트를 구현하고, 같은 프로젝�
    - Actuator 메트릭 수집과 시계열 대시보드 구성
 8. [ELK와 traceId](docs/testing-observability/08-elk-trace-id.md)
    - 구조화 로그 수집과 요청 단위 추적
+9. [프론트엔드 성능 최적화](docs/testing-observability/09-frontend-performance.md)
+   - Lighthouse Before/After 측정과 Core Web Vitals, 정적 리소스 최적화
